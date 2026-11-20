@@ -1,0 +1,37 @@
+# EcoTrack: Household Energy Consumption & Cost Analyzer
+
+FAST-NUCES, AL-2001 Programming for Artificial Intelligence (Lab), Fall 2026, Section BAI-3A
+
+Group: Syed Abdullah Shah (25K-0142), Bhawani Shanker (25K-0044)
+
+Menu-driven Python console application that analyzes household electricity consumption.
+**This is work in progress .** The full README will be completed in the final version.
+
+## Run
+
+```bash
+python -m venv .venv
+# Windows: .venv\Scripts\activate     macOS/Linux: source .venv/bin/activate
+pip install -r requirements.txt
+python main.py
+```
+
+Choose menu option 1 first to load the data.
+
+## Menu options available so far
+
+| # | Option |
+|---|---|
+| 1 | Load and validate data |
+
+Still to be added: Consumption analysis, Cost estimation, NumPy day-by-hour analysis, Charts, Machine learning, Text processing (TF-IDF), Recommendations, Weather (Open-Meteo) .
+
+## Data
+
+UCI Individual Household Electric Power Consumption dataset:
+https://archive.ics.uci.edu/dataset/235/individual+household+electric+power+consumption
+The file in `data/raw/` is a small subset (see `src/prepare_data.py`).
+
+## AI assistance
+
+The code was written by me. When I got stuck somewhere, I took help from AI to modify it, and then I reviewed and understood the final code myself.
