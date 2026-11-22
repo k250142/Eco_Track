@@ -1,5 +1,6 @@
 """EnergyAnalyzer: Pandas summaries and a vectorized 2-D NumPy analysis (Labs 07, 08)."""
 
+import numpy as np
 import pandas as pd
 
 
@@ -76,3 +77,73 @@ class EnergyAnalyzer:
         profile = self.hour_of_day_profile()
         high_hours = set(profile[profile >= self._df["energy_kwh"].mean() * 1.3].index)
         return threshold, top_list, high_hours
+
+    # ---- NumPy: 2-D, vectorized -------------------------------------------
+    def numpy_day_hour_analysis(self):
+        """Analyse a (days x 24 hours) array with slicing, masking, broadcasting.
+
+        No Python loops over array elements are used.
+
+        Returns:
+            dict of results (arrays and scalars).
+        """
+        table = (self._df["energy_kwh"]
+                 .groupby([self._df.index.normalize(), self._df["hour_of_day"]])
+                 .mean().unstack().reindex(columns=range(24)))
+        grid = table.to_numpy(dtype=float)               # shape (n_days, 24)
+        day_of_week = table.index.dayofweek.to_numpy()
+
+        # Boolean masking: keep only days with all 24 hours measured.
+        complete = ~np.isnan(grid).any(axis=1)
+        grid, day_of_week = grid[complete], day_of_week[complete]
+        dates = table.index[complete]
+        if grid.shape[0] < 2:
+            raise ValueError("Not enough complete days for the NumPy analysis.")
+
+        weekday_mask = day_of_week < 5
+        weekday_profile = grid[weekday_mask].mean(axis=0)      # mask + axis aggregation
+        weekend_profile = grid[~weekday_mask].mean(axis=0)
+
+        daily_totals = grid.sum(axis=1)                        # axis aggregation
+        shares = grid / daily_totals[:, np.newaxis]            # broadcasting (n,24)/(n,1)
+
+        e0, e1 = self.EVENING_HOURS
+        n0, n1 = self.NIGHT_HOURS
+        evening_share = float(shares[:, e0:e1].sum(axis=1).mean())   # slicing
+        night_share = float(shares[:, n0:n1].sum(axis=1).mean())
+
+        profile = grid.mean(axis=0)
+        deviation = (grid - profile) / grid.std(axis=0)        # broadcasting (n,24)-(24,)
+        unusual = np.abs(deviation) > 2.5
+        unusual_per_day = unusual.sum(axis=1)
+        worst = int(unusual_per_day.argmax())
+
+        return {
+            "n_complete_days": int(grid.shape[0]),
+            "dates": dates,
+            "grid": grid,
+            "weekday_profile": weekday_profile,
+            "weekend_profile": weekend_profile,
+            "daily_totals": daily_totals,
+            "day_of_week": day_of_week,
+            "evening_share": evening_share,
+            "night_share": night_share,
+            "peak_hour": int(profile.argmax()),
+            "base_load_kwh": float(np.percentile(grid, 5)),
+            "unusual_cells": int(unusual.sum()),
+            "unusual_day": str(dates[worst].date()),
+            "unusual_day_count": int(unusual_per_day[worst]),
+            "weekend_ratio": float(daily_totals[~weekday_mask].mean() / daily_totals[weekday_mask].mean()),
+        }
+
+    def usage_stats(self):
+        """Compact dict of pattern statistics used by the recommendation rules."""
+        result = self.numpy_day_hour_analysis()
+        return {
+            "peak_hour": result["peak_hour"],
+            "evening_share": result["evening_share"],
+            "night_share": result["night_share"],
+            "base_load_kwh": result["base_load_kwh"],
+            "weekend_ratio": result["weekend_ratio"],
+            "mean_daily_kwh": float(result["daily_totals"].mean()),
+        }

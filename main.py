@@ -78,6 +78,21 @@ class EcoTrackApp:
         print(f"Evening (18-22h) average: {evening['energy_kwh'].mean():.3f} kWh per hour "
               f"over {len(evening)} records")
 
+    def numpy_analysis(self):
+        r = self.analyzer.numpy_day_hour_analysis()
+        print(f"\nAnalysed a {r['grid'].shape[0]} days x 24 hours array (complete days only).")
+        print(f"Peak hour of the day:           {r['peak_hour']:02d}:00")
+        print(f"Share of energy 18:00-22:00:    {r['evening_share']:.1%}")
+        print(f"Share of energy 00:00-06:00:    {r['night_share']:.1%}")
+        print(f"Base load (5th percentile):     {r['base_load_kwh']:.3f} kWh per hour")
+        print(f"Weekend/weekday daily energy:   {r['weekend_ratio']:.2f}")
+        print(f"Unusual day-hour cells (|z|>2.5): {r['unusual_cells']}; "
+              f"most on {r['unusual_day']} ({r['unusual_day_count']})")
+        print("Weekday profile (kWh by hour 0-23):")
+        print("  " + " ".join(f"{v:.2f}" for v in r["weekday_profile"]))
+        print("Weekend profile:")
+        print("  " + " ".join(f"{v:.2f}" for v in r["weekend_profile"]))
+
     def charts(self):
         viz = EnergyVisualizer(self.analyzer)
         paths = viz.create_all_basic()
@@ -119,6 +134,7 @@ def main():
     actions = {
         "1": app.load_data,
         "2": app.analysis,
+        "4": app.numpy_analysis,
         "5": app.charts,
         "7": app.text_processing,
     }
