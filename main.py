@@ -12,6 +12,7 @@ from src.cost import CostCalculator
 from src.data_manager import EnergyDataManager
 from src.exceptions import EcoTrackError
 from src.ml_models import ConsumptionClassifier
+from src.recommendations import ApplianceBasedRecommendation, UsageBasedRecommendation
 from src.text_processor import NoteProcessor
 from src.utils import RESULTS_DIR, ask_choice, ask_float, ask_text, pause
 from src.visualizer import EnergyVisualizer
@@ -37,6 +38,7 @@ class EcoTrackApp:
     def __init__(self):
         self.manager = EnergyDataManager()
         self.cost = CostCalculator()
+        self.appliances = []          # list of dicts (name, watts, hours_per_day)
         self.notes = NoteProcessor()
         self.ml_results = None
         self._analyzer = None
@@ -176,6 +178,25 @@ class EcoTrackApp:
                 for score, note in matches:
                     print(f"  [{score:.2f}] {note}")
 
+    def _add_appliances(self):
+        print("Enter appliances (leave the name empty to finish).")
+        while True:
+            name = ask_text("  Appliance name: ", allow_empty=True)
+            if not name:
+                return
+            watts = ask_float("  Power in watts: ", minimum=1, maximum=20000)
+            hours = ask_float("  Hours used per day: ", minimum=0, maximum=24)
+            self.appliances.append({"name": name, "watts": watts, "hours_per_day": hours})
+
+    def recommendations(self):
+        if not self.appliances and ask_choice("No appliances entered. Add some now? [y/n]: ", ["y", "n"]) == "y":
+            self._add_appliances()
+        strategies = [UsageBasedRecommendation(self.analyzer.usage_stats(), self.cost.tariff),
+                      ApplianceBasedRecommendation(self.appliances, self.cost.tariff)]
+        for strategy in strategies:       # polymorphism: same call, different behaviour
+            print("\n" + strategy.render())
+        print("\n(Suggestions are estimates, not guaranteed savings.)")
+
 def main():
     app = EcoTrackApp()
     actions = {
@@ -186,6 +207,7 @@ def main():
         "5": app.charts,
         "6": app.machine_learning,
         "7": app.text_processing,
+        "8": app.recommendations,
     }
     while True:
         print(MENU)
