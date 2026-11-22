@@ -4,13 +4,15 @@ Run from the project folder:
     python main.py
 """
 
+import json
 import sys
 
 from src.analyzer import EnergyAnalyzer
 from src.data_manager import EnergyDataManager
 from src.exceptions import EcoTrackError
+from src.ml_models import ConsumptionClassifier
 from src.text_processor import NoteProcessor
-from src.utils import ask_choice, ask_float, ask_text, pause
+from src.utils import RESULTS_DIR, ask_choice, ask_float, ask_text, pause
 from src.visualizer import EnergyVisualizer
 
 MENU = """
@@ -34,6 +36,7 @@ class EcoTrackApp:
     def __init__(self):
         self.manager = EnergyDataManager()
         self.notes = NoteProcessor()
+        self.ml_results = None
         self._analyzer = None
 
     # ---- helpers ---------------------------------------------------------------
@@ -96,9 +99,24 @@ class EcoTrackApp:
     def charts(self):
         viz = EnergyVisualizer(self.analyzer)
         paths = viz.create_all_basic()
+        if self.ml_results:
+            paths.append(viz.confusion_matrices(self.ml_results))
         print("\nCharts saved:")
         for path in paths:
             print(f"  {path.relative_to(path.parents[2])}")
+        if not self.ml_results:
+            print("(Run option 6 first to also get the confusion-matrix chart.)")
+
+    def machine_learning(self):
+        classifier = ConsumptionClassifier(self.analyzer.data["energy_kwh"])
+        self.ml_results = classifier.run()
+        print("\n" + classifier.summary_text())
+        print("\nNote: scores describe this data subset only; the target is the next hour's label.")
+        RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+        path = RESULTS_DIR / "ml_comparison.json"
+        with open(path, "w", encoding="utf-8") as handle:
+            json.dump({"info": classifier.info, "results": self.ml_results}, handle, indent=2)
+        print(f"Saved: {path.relative_to(path.parents[2])}")
 
     def text_processing(self):
         while True:
@@ -136,6 +154,7 @@ def main():
         "2": app.analysis,
         "4": app.numpy_analysis,
         "5": app.charts,
+        "6": app.machine_learning,
         "7": app.text_processing,
     }
     while True:
