@@ -32,7 +32,3 @@ Still to be added: Consumption analysis, Cost estimation, NumPy day-by-hour anal
 UCI Individual Household Electric Power Consumption dataset:
 https://archive.ics.uci.edu/dataset/235/individual+household+electric+power+consumption
 The file in `data/raw/` is a small subset (see `src/prepare_data.py`).
-
-## AI assistance
-
-The initial code was generated with AI assistance (Claude, by Anthropic) and then reviewed and modified by the group.
