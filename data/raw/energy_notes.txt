@@ -1,0 +1,30 @@
+2007-01-02 | Heater was left on all night, the bill looks high this month.
+2007-01-04 | Washing machine and dryer ran together in the evening.
+2007-01-06 | Guests visited; oven and kitchen lights were on until midnight.
+2007-01-09 | Switched old light bulbs to LED lamps in the living room.
+2007-01-11 | The fridge door was left open for an hour, compressor ran longer.
+2007-01-14 | Weekend: TV and gaming console on all afternoon.
+2007-01-17 | Cold morning, geyser used twice for hot water.
+2007-01-20 | Air conditioner (A/C) not used, windows kept open.
+2007-01-22 | Ironing a large batch of clothes at 7pm.
+2007-01-25 | Unplugged chargers and standby devices before sleeping.
+2007-01-28 | Water heater timer set to run only in the morning.
+2007-01-30 | Power cut for a few hours in the evening.
+2007-02-01 | Electric heater used in the bedroom every night.
+2007-02-03 | Dishwasher run with a half-empty load.
+2007-02-05 | Kitchen oven used for baking, long preheating.
+2007-02-08 | Fridge cleaned and temperature lowered, seems quieter.
+2007-02-10 | Family away for the weekend, only the refrigerator running.
+2007-02-12 | Laundry done in one batch, washing machine at low temperature.
+2007-02-15 | The TV was left on standby for the whole week.
+2007-02-18 | Heater thermostat adjusted, room insulation improved.
+2007-02-20 | Too many lights on in the evening, switched some off.
+2007-02-23 | Evening peak: oven, kettle and heater at the same time.
+2007-02-25 | Used the dryer instead of air drying clothes.
+2007-02-27 | High bill reminder: check heater and water heater usage.
+2007-02-28 | Turned off unnecessary lights to reduce electricity consumption.
+2007-03-01 | Solar panels generated enough electricity to power the household during the afternoon.
+2007-03-03 | Switched off the water heater when it was not needed to save electricity.
+2007-03-05 | Microwave and electric kettle were used several times during the evening.
+2007-03-07 | Replaced an old refrigerator with an energy-efficient model to reduce power consumption.
+2007-03-09 | Unplugged the computer and monitor after finishing work to avoid standby electricity usage.

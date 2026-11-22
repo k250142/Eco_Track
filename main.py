@@ -8,6 +8,7 @@ import sys
 
 from src.data_manager import EnergyDataManager
 from src.exceptions import EcoTrackError
+from src.text_processor import NoteProcessor
 from src.utils import ask_choice, ask_float, ask_text, pause
 
 MENU = """
@@ -30,6 +31,7 @@ class EcoTrackApp:
 
     def __init__(self):
         self.manager = EnergyDataManager()
+        self.notes = NoteProcessor()
 
     # ---- helpers ---------------------------------------------------------------
     def analyzer(self):
@@ -53,10 +55,40 @@ class EcoTrackApp:
         for example in report["malformed_examples"][:3]:
             print(f"    skipped -> {example[:110]}")
 
+    def text_processing(self):
+        while True:
+            choice = ask_choice("\n [a] Analyse notes  [b] Add a note  [c] Search notes  [m] Back: ",
+                                ["a", "b", "c", "m"])
+            if choice == "m":
+                return
+            if choice == "b":
+                note = ask_text("Note text: ")
+                date_text = ask_text("Date (YYYY-MM-DD, optional): ", allow_empty=True)
+                self.notes.add_note(note, date_text or None)
+                print("Note saved.")
+                continue
+            count = self.notes.load()
+            if choice == "a":
+                print(f"\n{count} notes, TF-IDF matrix shape {self.notes.shape}.")
+                print("Cleaning examples (original -> cleaned):")
+                for original, cleaned in self.notes.example_cleaning(3):
+                    print(f"  {original}\n    -> {cleaned}")
+                print("Top terms by TF-IDF weight:")
+                for term, weight in self.notes.top_terms(10):
+                    print(f"  {term:15s}{weight:.2f}")
+            else:
+                query = ask_text("Search words: ")
+                matches = self.notes.similar_notes(query)
+                if not matches:
+                    print("No similar notes found.")
+                for score, note in matches:
+                    print(f"  [{score:.2f}] {note}")
+
 def main():
     app = EcoTrackApp()
     actions = {
         "1": app.load_data,
+        "7": app.text_processing,
     }
     while True:
         print(MENU)

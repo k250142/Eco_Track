@@ -5,7 +5,7 @@ FAST-NUCES, AL-2001 Programming for Artificial Intelligence (Lab), Fall 2026, Se
 Group: Syed Abdullah Shah (25K-0142), Bhawani Shanker (25K-0044)
 
 Menu-driven Python console application that analyzes household electricity consumption.
-**This is work in progress .** The full README will be completed in the final version.
+**This is work in progress (development version 2 of 10).** The full README will be completed in the final version.
 
 ## Run
 
@@ -23,8 +23,9 @@ Choose menu option 1 first to load the data.
 | # | Option |
 |---|---|
 | 1 | Load and validate data |
+| 7 | Text processing (TF-IDF) |
 
-Still to be added: Consumption analysis, Cost estimation, NumPy day-by-hour analysis, Charts, Machine learning, Text processing (TF-IDF), Recommendations, Weather (Open-Meteo) .
+Still to be added: Consumption analysis, Cost estimation, NumPy day-by-hour analysis, Charts, Machine learning, Recommendations, Weather (Open-Meteo).
 
 ## Data
 
@@ -34,4 +35,4 @@ The file in `data/raw/` is a small subset (see `src/prepare_data.py`).
 
 ## AI assistance
 
-The code was written by me. When I got stuck somewhere, I took help from AI to modify it, and then I reviewed and understood the final code myself.
+The initial code was generated with AI assistance (Claude, by Anthropic) and then reviewed and modified by the group.
