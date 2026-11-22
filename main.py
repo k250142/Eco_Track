@@ -8,6 +8,7 @@ import json
 import sys
 
 from src.analyzer import EnergyAnalyzer
+from src.cost import CostCalculator
 from src.data_manager import EnergyDataManager
 from src.exceptions import EcoTrackError
 from src.ml_models import ConsumptionClassifier
@@ -35,6 +36,7 @@ class EcoTrackApp:
 
     def __init__(self):
         self.manager = EnergyDataManager()
+        self.cost = CostCalculator()
         self.notes = NoteProcessor()
         self.ml_results = None
         self._analyzer = None
@@ -46,6 +48,14 @@ class EcoTrackApp:
         if self._analyzer is None:
             self._analyzer = EnergyAnalyzer(self.manager.hourly)
         return self._analyzer
+
+    def _set_tariff(self):
+        value = ask_float(f"Tariff per kWh [Enter = {self.cost.tariff}]: ", minimum=0.0001,
+                          default=self.cost.tariff)
+        self.cost.tariff = value
+        label = ask_text("Currency name [Enter = keep]: ", allow_empty=True)
+        if label:
+            self.cost = CostCalculator(value, label)
 
     # ---- menu actions ----------------------------------------------------------
     def load_data(self):
@@ -80,6 +90,25 @@ class EcoTrackApp:
         evening = a.evening_records()
         print(f"Evening (18-22h) average: {evening['energy_kwh'].mean():.3f} kWh per hour "
               f"over {len(evening)} records")
+
+    def cost_estimation(self):
+        self._set_tariff()
+        hourly = self.analyzer.data["energy_kwh"]
+        total_kwh, total_cost = self.cost.total_cost(hourly)
+        cur = self.cost.currency
+        print(f"\nTotal energy in data: {total_kwh:.1f} kWh  ->  cost {total_cost:.2f} {cur} "
+              f"at {self.cost.tariff} {cur}/kWh")
+        daily = self.cost.daily_costs(hourly)
+        print(f"Average complete-day cost: {daily.mean():.2f} {cur}  "
+              f"(min {daily.min():.2f}, max {daily.max():.2f}, {len(daily)} days)")
+        measured, hours = self.cost.monthly_costs(hourly)
+        print("Monthly measured cost (partial months have fewer hours):")
+        for month, value in measured.items():
+            print(f"  {month:%Y-%m}: {value:8.2f} {cur}  ({hours[month]} hours measured)")
+        mean_daily = self.analyzer.usage_stats()["mean_daily_kwh"]
+        print(f"Projected 30-day bill at the average daily use ({mean_daily:.1f} kWh/day): "
+              f"{self.cost.projected_monthly_bill(mean_daily):.2f} {cur}")
+        print("(Estimate only. Energy is the hourly mean power x 1 h, not instantaneous power.)")
 
     def numpy_analysis(self):
         r = self.analyzer.numpy_day_hour_analysis()
@@ -152,6 +181,7 @@ def main():
     actions = {
         "1": app.load_data,
         "2": app.analysis,
+        "3": app.cost_estimation,
         "4": app.numpy_analysis,
         "5": app.charts,
         "6": app.machine_learning,
