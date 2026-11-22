@@ -74,6 +74,8 @@ class EcoTrackApp:
               f"{report['hours_dropped_low_coverage']})")
         for example in report["malformed_examples"][:3]:
             print(f"    skipped -> {example[:110]}")
+        for path in self.manager.save_processed():
+            print(f"  Saved: {path.relative_to(path.parents[2])}")
 
     def analysis(self):
         a = self.analyzer
@@ -209,6 +211,11 @@ def main():
         "7": app.text_processing,
         "8": app.recommendations,
     }
+    try:
+        app.manager.load_processed()   # reuse saved data if it exists
+    except EcoTrackError:
+        pass
+
     while True:
         print(MENU)
         choice = input("Choose 1-10: ").strip()

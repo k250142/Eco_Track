@@ -5,6 +5,7 @@ Input format: the UCI "Individual Household Electric Power Consumption" file
 """
 
 import csv
+import json
 from datetime import datetime
 from pathlib import Path
 
@@ -163,3 +164,58 @@ class EnergyDataManager:
         hourly.loc[low, ["energy_kwh", "avg_voltage", "kitchen_kwh", "laundry_kwh", "heater_ac_kwh"]] = float("nan")
         hourly.index.name = "hour"
         return hourly
+
+    # ---- storing processed data (CSV, JSON, TXT) ---------------------------
+    def save_processed(self):
+        """Write processed outputs: hourly CSV, summary JSON, validation TXT.
+
+        Returns:
+            List of the paths written.
+        """
+        data = self.hourly
+        self._processed_dir.mkdir(parents=True, exist_ok=True)
+        csv_path = self._processed_dir / "hourly_energy.csv"
+        json_path = self._processed_dir / "data_summary.json"
+        txt_path = self._processed_dir / "validation_report.txt"
+
+        data.to_csv(csv_path)
+
+        clean = data["energy_kwh"].dropna()
+        summary = {
+            "hours": int(len(clean)),
+            "total_kwh": round(float(clean.sum()), 3),
+            "mean_kwh_per_hour": round(float(clean.mean()), 4),
+            "max_kwh_in_one_hour": round(float(clean.max()), 4),
+        }
+        with open(json_path, "w", encoding="utf-8") as handle:
+            json.dump({"validation": self._report, "summary": summary}, handle, indent=2)
+
+        lines = [
+            "EcoTrack data validation report",
+            "=" * 34,
+            *[f"{key}: {value}" for key, value in self._report.items() if key != "malformed_examples"],
+            "Malformed row examples:",
+            *(self._report["malformed_examples"] or ["  none"]),
+        ]
+        with open(txt_path, "w", encoding="utf-8") as handle:
+            handle.write("\n".join(lines) + "\n")
+        return [csv_path, json_path, txt_path]
+
+    def load_processed(self):
+        """Load a previously saved hourly CSV. Returns True on success, False if absent."""
+        csv_path = self._processed_dir / "hourly_energy.csv"
+        if not csv_path.exists():
+            return False
+        try:
+            self._hourly = pd.read_csv(csv_path, index_col="hour", parse_dates=["hour"])
+        except (OSError, ValueError, KeyError) as exc:
+            raise DataValidationError(f"Processed file is unreadable: {exc}", csv_path) from exc
+
+        json_path = self._processed_dir / "data_summary.json"
+        if json_path.exists():
+            try:
+                with open(json_path, encoding="utf-8") as handle:
+                    self._report = json.load(handle).get("validation", {})
+            except (OSError, json.JSONDecodeError):
+                self._report = {}
+        return True
