@@ -6,6 +6,7 @@ Run from the project folder:
 
 import sys
 
+from src.analyzer import EnergyAnalyzer
 from src.data_manager import EnergyDataManager
 from src.exceptions import EcoTrackError
 from src.text_processor import NoteProcessor
@@ -32,8 +33,10 @@ class EcoTrackApp:
     def __init__(self):
         self.manager = EnergyDataManager()
         self.notes = NoteProcessor()
+        self._analyzer = None
 
     # ---- helpers ---------------------------------------------------------------
+    @property
     def analyzer(self):
         """Create the analyzer on demand; raises DataValidationError if data is not loaded."""
         if self._analyzer is None:
@@ -43,6 +46,7 @@ class EcoTrackApp:
     # ---- menu actions ----------------------------------------------------------
     def load_data(self):
         report = self.manager.load_raw()
+        self._analyzer = None
         print("\nData loaded and validated:")
         print(f"  File:              {report['raw_file']}")
         print(f"  Period:            {report['date_from']}  to  {report['date_to']}")
@@ -54,6 +58,24 @@ class EcoTrackApp:
               f"{report['hours_dropped_low_coverage']})")
         for example in report["malformed_examples"][:3]:
             print(f"    skipped -> {example[:110]}")
+
+    def analysis(self):
+        a = self.analyzer
+        print("\nHourly consumption (kWh per hour):")
+        print(a.hourly_summary().round(3).to_string())
+        print("\nDaily summary (last 7 days):")
+        print(a.daily_summary().tail(7).round(2).to_string())
+        print("\nMonthly summary:")
+        print(a.monthly_summary().round(2).to_string())
+        threshold, top, high_hours = a.high_usage_periods(5)
+        print(f"\nHigh-usage threshold (90th percentile): {threshold:.3f} kWh per hour")
+        print("Top 5 highest hours:")
+        for stamp, kwh in top:
+            print(f"  {stamp:%Y-%m-%d %H:%M}  {kwh:.3f} kWh")
+        print("Clock hours that are typically high-usage:", sorted(high_hours))
+        evening = a.evening_records()
+        print(f"Evening (18-22h) average: {evening['energy_kwh'].mean():.3f} kWh per hour "
+              f"over {len(evening)} records")
 
     def text_processing(self):
         while True:
@@ -88,6 +110,7 @@ def main():
     app = EcoTrackApp()
     actions = {
         "1": app.load_data,
+        "2": app.analysis,
         "7": app.text_processing,
     }
     while True:
