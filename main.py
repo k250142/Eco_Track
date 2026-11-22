@@ -16,6 +16,7 @@ from src.recommendations import ApplianceBasedRecommendation, UsageBasedRecommen
 from src.text_processor import NoteProcessor
 from src.utils import RESULTS_DIR, ask_choice, ask_float, ask_text, pause
 from src.visualizer import EnergyVisualizer
+from src.weather import WeatherService
 
 MENU = """
 ==================== ECO TRACK ====================
@@ -40,6 +41,7 @@ class EcoTrackApp:
         self.cost = CostCalculator()
         self.appliances = []          # list of dicts (name, watts, hours_per_day)
         self.notes = NoteProcessor()
+        self.weather = WeatherService()
         self.ml_results = None
         self._analyzer = None
 
@@ -199,6 +201,11 @@ class EcoTrackApp:
             print("\n" + strategy.render())
         print("\n(Suggestions are estimates, not guaranteed savings.)")
 
+    def weather_info(self):
+        place = ask_text("Place name (e.g. Karachi) or 'latitude,longitude': ")
+        print("\n" + WeatherService.format_weather(self.weather.get_weather(place)))
+
+
 def main():
     app = EcoTrackApp()
     actions = {
@@ -210,6 +217,7 @@ def main():
         "6": app.machine_learning,
         "7": app.text_processing,
         "8": app.recommendations,
+        "9": app.weather_info,
     }
     try:
         app.manager.load_processed()   # reuse saved data if it exists
