@@ -109,10 +109,6 @@ docs/                    proposal (final report goes here)
 * **Energy, not power:** the UCI file holds average power (kW) per minute. Hourly energy (kWh) = mean power of the valid minutes in the hour x 1 h. Hours with fewer than 45 valid minutes are dropped.
 * **ML labels:** each hour is labelled high/low against the **median of the training hours only**; the same threshold is applied to the test data. Models predict the **next hour's** label from lagged consumption and calendar features. The split is chronological (first 80% train, last 20% test), the scaler is fitted on training data only, and a simple "repeat the current hour" baseline is printed for reference.
 
-## AI assistance
-
-The initial code of this project was generated with AI assistance (Claude, by Anthropic) from the project proposal. The group members reviewed, ran, tested and modified it. The final report must state exactly which parts were AI-generated and what each member changed or wrote. Edit this section so it matches what actually happened.
-
 ## Limitations and ethics
 
 * Results describe only the selected data subset, which may not represent other households, regions or climates.
