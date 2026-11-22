@@ -11,6 +11,7 @@ from src.data_manager import EnergyDataManager
 from src.exceptions import EcoTrackError
 from src.text_processor import NoteProcessor
 from src.utils import ask_choice, ask_float, ask_text, pause
+from src.visualizer import EnergyVisualizer
 
 MENU = """
 ==================== ECO TRACK ====================
@@ -77,6 +78,13 @@ class EcoTrackApp:
         print(f"Evening (18-22h) average: {evening['energy_kwh'].mean():.3f} kWh per hour "
               f"over {len(evening)} records")
 
+    def charts(self):
+        viz = EnergyVisualizer(self.analyzer)
+        paths = viz.create_all_basic()
+        print("\nCharts saved:")
+        for path in paths:
+            print(f"  {path.relative_to(path.parents[2])}")
+
     def text_processing(self):
         while True:
             choice = ask_choice("\n [a] Analyse notes  [b] Add a note  [c] Search notes  [m] Back: ",
@@ -111,6 +119,7 @@ def main():
     actions = {
         "1": app.load_data,
         "2": app.analysis,
+        "5": app.charts,
         "7": app.text_processing,
     }
     while True:
